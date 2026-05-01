@@ -1,4 +1,3 @@
-# vim: syn=python ts=4 sts=4 sw=4 smartindent expandtab
 """
 Django settings for django_project project.
 
@@ -190,13 +189,13 @@ if DEBUG:
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     _debug_env = Path(BASE_DIR) / "django_project" / "local_settings" / "debug_env"
 else:
-        _production_settings_file = SETTINGS_DIR / "production_settings.py"
-        if _production_settings_file.exists():
-            from .production_settings import *
-        _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
-        if _production_settings_file.exists():
-            from .local_settings.production_settings import *
-        del _production_settings_file
+    _production_settings_file = SETTINGS_DIR / "production_settings.py"
+    if _production_settings_file.exists():
+        from .production_settings import *
+    _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
+    if _production_settings_file.exists():
+        from .local_settings.production_settings import *
+    del _production_settings_file
 
 INSTALLED_APPS = (
     *django_apps,

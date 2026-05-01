@@ -8,7 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENV = Env(
         DJANGO_SETTINGS_MODULE=(str, "django_project.settings"),
-        DATA_PATH=(str, str(BASE_DIR / ".data")),
+        DJANGO_DATA_DIR=(str, str(BASE_DIR / ".data")),
+        VENV_DIR=(str, str(BASE_DIR / ".venv")),
+        CONTAINER_DATA_DIR=(str, "/data"),
         CONTAINERIZED=(bool, False),
         DEBUG=(bool, False),
         SECRET_KEY=(str, "django-insecure-j#05f7jxku!2oy7(nzim=zl15c50_(=2nkfl*mtp28$+ubt(rl"),  # noqa: E501
@@ -31,22 +33,19 @@ for env_file in (Path(i).resolve() for i in CONFIG_ENV_FILES):
     if env_file.is_file():
         ENV.read_env(env_file)
 
+
+if env_file.is_file():
+    ENV.read_env(env_file)
+
 if CONTAINERIZED:
     env_file = Path("/etc/django.env")
     if env_file.is_file():
         ENV.read_env(env_file)
-
-for env_file in (Path(i).resolve() for i in ENV.list("CONFIG_ENV_FILES")):
+    env_file = Path(ENV("CONTAINER_DATA_DIR")) / ".env"
     if env_file.is_file():
         ENV.read_env(env_file)
 
-
 LOCAL_ENV_DIR = Path(__file__).resolve().parent / "local_settings"
-
-env_file = LOCAL_ENV_DIR / 'env'
-if env_file.is_file():
-    ENV.read_env(env_file)
-
 env_file = LOCAL_ENV_DIR / 'env.local'
 if env_file.is_file():
     ENV.read_env(env_file)
