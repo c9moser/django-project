@@ -1,3 +1,4 @@
+# vim: syn=python ts=4 sts=4 sw=4 smartindent expandtab
 """
 Django settings for django_project project.
 
@@ -11,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from .env import ENV
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,24 +22,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j#05f7jxku!2oy7(nzim=zl15c50_(=2nkfl*mtp28$+ubt(rl'
+SECRET_KEY = ENV('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = ENV('DEBUG')
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ENV('ALLOWED_HOSTS')
 
 # Application definition
 
-INSTALLED_APPS = [
+django_apps = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-]
+)
+
+allauth_apps = (
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+)
+
+third_party_apps = []
+
+project_apps = []
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -47,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'django_project.urls'
@@ -72,12 +85,39 @@ WSGI_APPLICATION = 'django_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if ENV('DATABASE_CONFIG_METHOD') == 'url':
+    DATABASES = {
+        'default': ENV.db_url('DATABASE_URL'),
     }
-}
+elif ENV('DATABASE_CONFIG_METHOD') in ['postgresql','pgsql', 'postgres', 'psql']:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': ENV('POSTGRES_DB'),
+            'USER': ENV('POSTGRES_USER'),
+            'PASSWORD': ENV('POSTGRES_PASSWORD'),
+            'HOST': ENV('POSTGRES_HOST'),
+            'PORT': ENV('POSTGRES_PORT'),
+        }
+    }
+elif ENV('DATABASE_CONFIG_METHOD') in ['mysql', 'mariadb']:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': ENV('MYSQL_DB'),
+            'USER': ENV('MYSQL_USER'),
+            'PASSWORD': ENV('MYSQL_PASSWORD'),
+            'HOST': ENV('MYSQL_HOST'),
+            'PORT': ENV('MYSQL_PORT'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -120,3 +160,48 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SETTINGS_DIR = Path(__file__).resolve().parent
+LOCAL_SETTINGS_DIR = BASE_DIR / "django_project" / "local_settings"
+
+_local_settings_file = LOCAL_SETTINGS_DIR / "settings.py"
+if _local_settings_file.exists():
+    from .local_settings.settings import *
+del _local_settings_file
+
+if ENV('CONTAINERIZED'):
+    if Path('/etc/django-env').exists():
+        ENV.read_env('/etc/django-env')
+
+
+if DEBUG:
+    _debug_settings_file = SETTINGS_DIR / "debug_settings.py"
+    if _debug_settings_file.exists():
+        from .debug_settings import *
+    _debug_settings_file = LOCAL_SETTINGS_DIR / "debug_settings.py"
+    if _debug_settings_file.exists():
+        from .local_settings.debug_settings import *
+    del _debug_settings_file
+
+    third_party_apps += [
+        'debug_toolbar',
+        'django_browser_reload',
+    ]
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    _debug_env = Path(BASE_DIR) / "django_project" / "local_settings" / "debug_env"
+else:
+        _production_settings_file = SETTINGS_DIR / "production_settings.py"
+        if _production_settings_file.exists():
+            from .production_settings import *
+        _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
+        if _production_settings_file.exists():
+            from .local_settings.production_settings import *
+        del _production_settings_file
+
+INSTALLED_APPS = (
+    *django_apps,
+    *allauth_apps,
+    *third_party_apps,
+    *project_apps
+)
+del django_apps, allauth_apps, third_party_apps, project_apps
