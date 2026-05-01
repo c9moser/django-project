@@ -45,7 +45,9 @@ allauth_apps = (
     'allauth.socialaccount',
 )
 
-third_party_apps = []
+third_party_apps = [
+    'widget_tweaks',
+]
 
 project_apps = []
 

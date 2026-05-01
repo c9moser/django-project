@@ -6,7 +6,7 @@ POST_COMMIT_HOOKS_DIR="$GIT_HOOKS_DIR/post-commit.d" ; export POST_COMMIT_HOOKS_
 BASE_DIR="$(dirname "$(dirname "$GIT_HOOKS_DIR")")" ; export BASE_DIR
 
 _ifs_save="$IFS"
-IFS="$\n"
+IFS=$'\n'
 for i in $(find "$POST_COMMIT_HOOKS_DIR" -type f -executable); do
     "$i" "$@" || exit $?
 done
