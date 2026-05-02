@@ -24,7 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = ENV('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = ENV('DEBUG')
+
+LOCAL_SETTINGS_DIR = BASE_DIR / "django_project" / "local_settings"
+_local_settings_file = LOCAL_SETTINGS_DIR / "settings.py"
+if _local_settings_file.exists():
+    from .local_settings import settings as local_settings
+        DEBUG = getattr(local_settings, "DEBUG", ENV("DEBUG"))
+else:
+    DEBUG = ENV('DEBUG')
 
 ALLOWED_HOSTS = ENV('ALLOWED_HOSTS')
 
@@ -112,11 +119,18 @@ elif ENV('DATABASE_CONFIG_METHOD') in ['mysql', 'mariadb']:
             'PORT': ENV('MYSQL_PORT'),
         }
     }
+elif ENV('DATABASE_CONFIG_METHOD') == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ENV('SQLITE_DB_NAME'),
+        }
+    }
 else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / '.data' / 'db.sqlite3',
         }
     }
 
@@ -143,14 +157,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = ENV('LANGUAGE_CODE', default='en-us')
+USE_I18N = ENV('USE_I18N', default=True)
 
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
+USE_TZ = ENV('USE_TZ', default=True)
+TIME_ZONE = ENV('TIME_ZONE', default='UTC')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -163,13 +174,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SETTINGS_DIR = Path(__file__).resolve().parent
-LOCAL_SETTINGS_DIR = BASE_DIR / "django_project" / "local_settings"
-
-_local_settings_file = LOCAL_SETTINGS_DIR / "settings.py"
-if _local_settings_file.exists():
-    from .local_settings.settings import *
-del _local_settings_file
-
+LOCAL_SETTINGS_DIR = SETTINGS_DIR / "local_settings"
 if ENV('CONTAINERIZED'):
     if Path('/etc/django-env').exists():
         ENV.read_env('/etc/django-env')
@@ -180,21 +185,35 @@ if DEBUG:
     if _debug_settings_file.exists():
         from .debug_settings import *
     _debug_settings_file = LOCAL_SETTINGS_DIR / "debug_settings.py"
-    if _debug_settings_file.exists():
-        from .local_settings.debug_settings import *
     del _debug_settings_file
+
 
     third_party_apps += [
         'debug_toolbar',
         'django_browser_reload',
     ]
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.insert(0, 'django_browser_reload.middleware.BrowserReloadMiddleware')
+
     _debug_env = Path(BASE_DIR) / "django_project" / "local_settings" / "debug_env"
 else:
     _production_settings_file = SETTINGS_DIR / "production_settings.py"
     if _production_settings_file.exists():
         from .production_settings import *
-    _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
+    del _production_settings_file
+
+# Load local settings if available, these can override all other settings and are not tracked in version control
+if _local_settings_file.exists():
+    from .local_settings.settings import * # noqa: F401, F403
+del _local_settings_file
+
+if DEBUG:
+    _debug_settings_file = LOCAL_SETTINGS_DIR / "debug_settings.py"
+    if _debug_settings_file.exists():
+        from .local_settings.debug_settings import *
+    del _debug_settings_file
+else:
+        _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
     if _production_settings_file.exists():
         from .local_settings.production_settings import *
     del _production_settings_file

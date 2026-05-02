@@ -10,11 +10,14 @@ readme = "README.md"
 requires-python = ">=3.13,<3.15"
 dependencies = [
     "django (>=5.2.13,<7.0)",
-    "django-allauth[openid,socialaccount] (>=65.14.1,<66.0.0)",
+    "django-allauth[openid,saml,socialaccount] (>=65.16.1,<66.0.0)",
     "pillow (>=12.1.1,<13.0.0)",
     "django-environ (>=0.12.0,<0.13.0)",
     "django-widget-tweaks (>=1.5.0,<2.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)"
+    "flake8 (>=7.3.0,<8.0.0)",
+    "uwsgi[emperor] (>=2.0.31,<3.0.0)",
+    "django-extensions (>=4.1,<5.0)",
+    "daphne (>=4.2.1,<5.0.0)"
 ]
 
 

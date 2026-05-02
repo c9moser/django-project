@@ -1,4 +1,4 @@
 #!/bin/sh
 
-python manage.py "$@"
+poetry run python manage.py "$@"
 exit $?
