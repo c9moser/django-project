@@ -29,7 +29,7 @@ LOCAL_SETTINGS_DIR = BASE_DIR / "django_project" / "local_settings"
 _local_settings_file = LOCAL_SETTINGS_DIR / "settings.py"
 if _local_settings_file.exists():
     from .local_settings import settings as local_settings
-        DEBUG = getattr(local_settings, "DEBUG", ENV("DEBUG"))
+    DEBUG = getattr(local_settings, "DEBUG", ENV("DEBUG"))
 else:
     DEBUG = ENV('DEBUG')
 
@@ -213,7 +213,7 @@ if DEBUG:
         from .local_settings.debug_settings import *
     del _debug_settings_file
 else:
-        _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
+    _production_settings_file = LOCAL_SETTINGS_DIR / "production_settings.py"
     if _production_settings_file.exists():
         from .local_settings.production_settings import *
     del _production_settings_file

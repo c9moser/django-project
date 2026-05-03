@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Verifying staged Python files with flake8 before commit..."
+
 # Verify staged Python files with flake8 before commit.
 
 set -eu
@@ -22,4 +24,10 @@ fi
 echo "[pre-commit:flake8] Checking staged Python files..."
 
 git diff --cached --name-only -z --diff-filter=ACMR -- '*.py' | xargs -0 flake8
-exit $?
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "[pre-commit:flake8] flake8 found issues in staged Python files. Please fix them before committing." >&2
+    exit $rc
+fi
+echo "[pre-commit:flake8] All staged Python files passed flake8 checks."
+exit 0

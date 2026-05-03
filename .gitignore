@@ -974,3 +974,4 @@ Temporary Items
 .apdisk
 
 django_project/local_settings/
+.githooks.conf
