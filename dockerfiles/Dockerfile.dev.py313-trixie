@@ -27,7 +27,7 @@ RUN apt-get update \
         uwsgi \
         uwsgi-plugin-python3 \
     && sh -c "echo 'daemon off;' >> /etc/apache2/apache2.conf" \
-    %% ah -c "a2enmod wsgi ssl" \
+    && a2enmod wsgi ssl \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /venv /app /data/media /data/static /data/.config \
     && ln -s /venv /app/.venv \

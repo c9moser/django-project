@@ -13,6 +13,7 @@ VOLUME /data
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
+        gettext \
         build-essential \
         libpq-dev \
         libmariadb-dev \

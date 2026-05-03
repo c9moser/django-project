@@ -1,7 +1,10 @@
 .git/
 .venv/
+venv/
 __pycache__/
 */__pycache__/
+*/*/__pycache/
+*/*/*/__pycache__/
 django_project/local_settings/
 .data/
 .media/

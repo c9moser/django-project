@@ -11,6 +11,7 @@ ENV STATIC_ROOT=/data/static
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
+        gettext \
         build-essential \
         libpq-dev \
         libmariadb-dev \
@@ -23,7 +24,8 @@ WORKDIR /app
 
 RUN ${VIRTUAL_ENV}/bin/pip install --no-cache-dir --upgrade -r requirements.txt \
     && touch /data/local_settings/__init__.py \
-    && if [ -d /app/django_project/local_settings ]; then rm -rf /app/django_project/local_settings; fi \
+    && ([ -d /app/.venv ] && rm -rf /app/.venv || true ) \
+    && ([ -d /app/django_project/local_settings ] && rm -rf /app/django_project/local_settings || true )\
     && ln -s /data/local_settings /app/django_project/local_settings
 
 RUN chmod +x /app/run.sh

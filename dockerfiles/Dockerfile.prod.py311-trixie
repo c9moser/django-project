@@ -16,7 +16,7 @@ RUN apt-get update \
         build-essential \
         libpq-dev \
         libmariadb-dev \
-        gettext-dev \
+        gettext \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app /data/media /data/static /data/local_settings /venv \
     && python -m venv /venv \
