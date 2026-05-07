@@ -3,7 +3,12 @@
 self="$(realpath "$0")"
 GIT_HOOKS_DIR="$(dirname "$self")" ; export GIT_HOOKS
 POST_COMMIT_HOOKS_DIR="$GIT_HOOKS_DIR/post-commit.d" ; export POST_COMMIT_HOOKS_DIR
-BASE_DIR="$(dirname "$(dirname "$GIT_HOOKS_DIR")")" ; export BASE_DIR
+if [ -d "$GIT_HOOKS_DIR/../.git" ]; then
+    BASE_DIR="$(dirname "$GIT_HOOKS_DIR")" ; export BASE_DIR
+else
+    BASE_DIR="$(dirname "$(dirname "$GIT_HOOKS_DIR")")" ; export BASE_DIR
+fi
+
 
 _ifs_save="$IFS"
 IFS=$'\n'

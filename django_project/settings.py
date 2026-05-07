@@ -53,6 +53,7 @@ allauth_apps = (
 )
 
 third_party_apps = [
+    'django_extensions',
     'widget_tweaks',
 ]
 

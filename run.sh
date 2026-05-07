@@ -44,54 +44,64 @@ fi
 case "$1" in
 	runserver)
 		shift
-		runserver "$@"
+		${HTTP_SERVER}_runserver "$@"
 		exit $?
 		;;
-	makemigrations)
-		shift
-		manage makemigrations "$@"
-		exit $?
-		;;
-	migrate)
-		shift
-		manage migrate "$@"
-		exit $?
-		;;
-	collectstatic)
-		shift
-		manage collectstatic "$@"
-		exit $?
-		;;
-	update)
-		shift
-		update "$@"
-		exit $?
-		;;
+
+	# django management commands
 	manage)
 		shift
 		manage "$@"
 		exit $?
 		;;
+	makemigrations)
+		shift
+		makemigrations "$@"
+		exit $?
+		;;
+	migrate)
+		shift
+		migrate "$@"
+		exit $?
+		;;
+	collectstatic)
+		shift
+		collectstatic "$@"
+		exit $?
+		;;
 	makemessages)
 		shift
-		manage makemessages "$@"
+		makemessages "$@"
 		exit $?
 		;;
 	compilemessages)
 		shift
-		manage compilemessages "$@"
+		compilemessages "$@"
 		exit $?
 		;;
 	createsuperuser)
 		shift
-		manage createsuperuser "$@"
+		createsuperuser "$@"
 		exit $?
 		;;
-	poetry)
+
+	# django runserver variants
+	django-runserver)
 		shift
-		poetry "$@"
+		django_runserver "$@"
 		exit $?
 		;;
+	django-runserver-plus)
+		shift
+		django-extensions_runserver "$@"
+		exit $?
+		;;
+	django-extensions-runserver)
+		shift
+		django-extensions_runserver "$@"
+		exit $?
+		;;
+	# Poetry commands
 	poetry-install)
 		shift
 		poetry_install "$@"
@@ -102,79 +112,40 @@ case "$1" in
 		poetry_update "$@"
 		exit $?
 		;;
-	poetry-manage)
+	poetry)
 		shift
-		poetry_manage "$@"
+		poetry "$@"
 		exit $?
 		;;
-	poetry-makemessages)
+
+    # Apache
+	apache-runserver)
 		shift
-		poetry_manage makemessages "$@"
+		apache_runserver "$@"
 		exit $?
 		;;
-	poetry-compilemessages)
+	apache-make-site)
 		shift
-		poetry_manage compilemessages "$@"
+		apache_make_site "$@"
 		exit $?
 		;;
-	poetry-migrate)
+
+	# Daphne
+	daphne-runserver)
 		shift
-		poetry_manage migrate "$@"
+		daphne_runserver "$@"
 		exit $?
 		;;
-	poetry-makemigrations)
+
+	# uWSGI
+	uwsgi-runserver)
 		shift
-		poetry_manage makemigrations "$@"
+		uwsgi_runserver "$@"
 		exit $?
 		;;
-	poetry-collectstatic)
+	uwsgi-make-ini)
 		shift
-		poetry_manage collectstatic "$@"
-		exit $?
-		;;
-	porty-runserver)
-		shift
-		poetry_manage runserver "$@"
-		exit $?
-		;;
-	py-runserver)
-		shift
-		py-runserver "$@"
-		exit $?
-		;;
-	py-update)
-		shift
-		py-update "$@"
-		exit $?
-		;;
-	py-manage)
-		shift
-		py-manage "$@"
-		exit $?
-		;;
-	py-compilemessages)
-		shift
-		py-manage compilemessages "$@"
-		exit $?
-		;;
-	py-makemessages)
-		shift
-		py-manage makemessages "$@"
-		exit $?
-		;;
-	py-migrate)
-		shift
-		py-manage migrate "$@"
-		exit $?
-		;;
-	py-makemigrations)
-		shift
-		py-manage makemigrations "$@"
-		exit $?
-		;;
-	py-collectstatic)
-		shift
-		py-manage collectstatic "$@"
+		uwsgi_make_ini "$@"
 		exit $?
 		;;
 	help)
@@ -182,61 +153,30 @@ case "$1" in
 Usage: run.sh <command> [options] [args]
 
 Available commands:
-  runserver        - Start the development server (usage: runserver [otpions])
-  makemigrations   - Create new database migrations based on the models
-  					(usage: makemigrations [app_label])
-  migrate          - Apply database migrations
-  					(usage: migrate [app_label] [migration_name])
-  collectstatic    - Collect static files into STATIC_ROOT
-  					(usage: collectstatic [options])
-  update           - Update dependencies and apply migrations
-  					(usage: update)
-  makemessages     - Create message files for translation
-  					(usage: makemessages [options])
-  compilemessages  - Compile message files for translation
-  					(usage: compilemessages [options])
-  createsuperuser  - Create a new superuser account
-  					(usage: createsuperuser)
-  manage		   - Run a custom manage.py command (usage: manage <command> [args])
-  createvenv	   - Create a Python virtual environment
-  					(usage: createvenv)
-  py-runserver     - Run the development server using Poetry environment
-  					(usage: py-runserver [ip:port])
-  py-update        - Update dependencies and apply migrations using Poetry environment
-  					(usage: py-update)
-  py-manage        - Run a custom manage.py command using Poetry environment
-  					(usage: py-manage <command> [args])
-  py-makemessages   - Create message files for translation using Poetry environment
-  					(usage: py-makemessages [options])
-  py-compilemessages- Compile message files for translation using Poetry environment
-  					(usage: py-compilemessages [options])
-  py-migrate       - Apply database migrations using Poetry environment
-  					(usage: py-migrate [app_label] [migration_name])
-  py-makemigrations- Create new database migrations based on the models using Poetry environment
-  					(usage: py-makemigrations [app_label])
-  py-collectstatic - Collect static files into STATIC_ROOT using Poetry environment
-  					(usage: py-collectstatic [options])
-  poetry           - Run a Poetry command
-  					(usage: poetry <command> [args])
-  poetry-install   - Install dependencies using Poetry
-  					(usage: poetry-install [options])
-  poetry-update    - Update dependencies using Poetry
-  					(usage: poetry-update [options])
-  poetry-manage    - Run a custom manage.py command using Poetry
-  					(usage: poetry-manage <command> [args])
-  poetry-makemessages - Create message files for translation using Poetry environment
-  					(usage: poetry-makemessages [options])
-  poetry-compilemessages - Compile message files for translation using Poetry environment
-  					(usage: poetry-compilemessages [options])
-  poetry-migrate   - Apply database migrations using Poetry environment
-  					(usage: poetry-migrate [app_label] [migration_name])
-  poetry-makemigrations - Create new database migrations based on the models using Poetry environment
-  					(usage: poetry-makemigrations [app_label])
-  poetry-collectstatic - Collect static files into STATIC_ROOT using Poetry environment
-  					(usage: poetry-collectstatic [options])
-  poetry-runserver - Run the development server using Poetry environment, binding to all interfaces
-  					(usage: poetry-runserver [ip:port])
-  help             - Show this help message
+  runserver                Run the development server (default)
+  manage <command>         Run a Django management command
+  makemigrations           Create new migrations based on the changes detected to your models
+  migrate                  Apply migrations to the database
+  collectstatic            Collect static files into STATIC_ROOT
+  makemessages             Create message files for translation
+  compilemessages          Compile message files for translation
+  createsuperuser          Create a new superuser
+
+  django-runserver         Run the development server using Django's built-in runserver
+  django-runserver-plus    Run the development server using django-extensions' runserver_plus
+  django-extensions-runserver Run the development server using django-extensions' runserver_plus
+
+  poetry-install           Install dependencies using Poetry
+  poetry-update            Update dependencies using Poetry
+  poetry                   Run a Poetry command
+
+  apache-runserver         Run the application with Apache and mod_wsgi
+  apache-make-site         Create an Apache site configuration for the application
+
+  daphne-runserver         Run the application with Daphne ASGI server
+
+  uwsgi-runserver          Run the application with uWSGI server
+  uwsgi-make-ini           Create a uWSGI ini file for the application
 EOF
 		exit 0
 		;;

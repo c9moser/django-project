@@ -973,5 +973,24 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Porject
+.run/
+.data/
+.venv*/
+
 django_project/local_settings/
 .githooks.conf
+
+httpd/sites-available/000-app-ssl.conf
+httpd/sites-available/000-app-insecure.conf
+httpd/sites-available/000-app-insecure-redirect.conf
+
+docker-compose.yml
+compose.yaml
+
+.env
+.env.*
+httpd/sites-available/
+https/nginx/sites-available/
+uwsgi.ini
+

@@ -11,3 +11,13 @@ django_project/local_settings/
 .static/
 README.md
 
+.containers.yaml
+.containers.yml
+.containers.json
+
+.dockerignore
+docker-compose.yml
+dockerfiles/
+
+.env
+.env.*
