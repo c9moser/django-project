@@ -1,4 +1,4 @@
-# LICENSE for django_project
+# LICENSE for django-project
 
 **Copyright (C) 2026 by ChristianMoser [<devel@c-moser.at>](mailto:devel@c-moser.at)**
 
