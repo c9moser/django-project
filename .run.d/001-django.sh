@@ -1,12 +1,7 @@
 
 django_runserver() {
     if [ $# -eq 0 ]; then
-        if [ "$CONTAINERIZED" -eq 1 ]; then
-            local addr="0.0.0.0:$HTTP_PORT"
-        else
-            local addr="127.0.0.1:$HTTP_PORT"
-        fi
-        exec $python manage.py runserver "$addr"
+        exec $python manage.py runserver "$HTTP_ADDRESS:$HTTP_PORT"
     else
         exec $python manage.py runserver "$@"
     fi
@@ -15,12 +10,7 @@ django_runserver() {
 
 django-extensions_runserver() {
     if [ $# -eq 0 ]; then
-        if [ "$CONTAINERIZED" -eq 1 ]; then
-            local addr="0.0.0.0:$HTTP_PORT"
-        else
-            local addr="127.0.0.1:$HTTP_PORT"
-        fi
-        exec $python manage.py runserver_plus "$addr"
+        exec $python manage.py runserver_plus "$HTTP_ADDRESS:$HTTP_PORT"
     else
         exec $python manage.py runserver_plus "$@"
     fi

@@ -1,4 +1,6 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:poetry",
-    "python-envs.defaultPackageManager": "ms-python.python:poetry"
+    "python-envs.defaultPackageManager": "ms-python.python:poetry",
+    "vs-cupl.PathOpenOcd": "/usr/bin/openocd",
+    "vs-cupl.PathOpenOcdDl": "/usr/share/openocd"
 }

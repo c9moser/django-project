@@ -21,6 +21,7 @@ apache_mkconfig() {
     fi
     if [ $CONTAINERIZED -eq 1 ]; then
         ln -s $config $APACHE_SITES_ENABLED/000-django_project.conf
+    fi
 }
 
 apache_runserver() {

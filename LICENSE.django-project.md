@@ -1,6 +1,6 @@
-# LICENSE for __project__
+# LICENSE for django_project
 
-**Copyright (C) 2026 by ChristianMoser  _entwicklung@cmoser.eu_**
+**Copyright (C) 2026 by ChristianMoser [<devel@c-moser.at>](mailto:devel@c-moser.at)**
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
 

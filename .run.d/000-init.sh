@@ -2,7 +2,7 @@ RE_TRUE="^(1|[yY]|[yY][eE][sS]|[tT][rR][uU][eE]|[Oo][Nn])$" ; export RE_TRUE
 RE_FALSE="^(0|[nN]|[nN][oO]|[fF][aA][lL][sS][eE]|[Oo][Ff][fF])$" ; export RE_FALSE
 
 is_true() {
-    if [ -n "$1" ] && echo "$1" | grep -E -q "$RE_TRUE"; then
+    if [ -n "$1" -a -n "$(echo "$1" | grep -E -q "$RE_TRUE")" ]; then
         return 0
     else
         return 1
@@ -10,7 +10,7 @@ is_true() {
 }
 
 is_false() {
-    if [ -n "$1" ] && echo "$1" | grep -E -q "$RE_FALSE"; then
+    if [ -n "$1" -a -n "$(echo "$1" | grep -E -q "$RE_FALSE")" ]; then
         return 0
     else
         return 1
@@ -18,14 +18,19 @@ is_false() {
 }
 
 bval() {
-    if is_true "$1"; then
+    if is_true $1; then
         echo 1
-    elif is_false "$1"; then
+    elif is_false $1; then
         echo 0
-    elif [ -n "$1"]; then
-        bval $1
     elif [ -z "$1" ]; then
-        echo "invalid boolean value: '$1'" >&2
+        if [ -n "$2" ]; then
+            echo $2
+        else
+            echo 0
+        fi
+    else
+        echo "[ERROR] Invalid boolean value: $1" >&2
+        echo 0
         return 1
     fi
 }
@@ -45,18 +50,12 @@ else
 fi
 export PROJECT_ENV_FILE
 
+echo "[INFO] Base environment configuration: BASE_DIR=$BASE_DIR, ENV_FILE=$ENV_FILE, PROJECT_ENV_FILE=$PROJECT_ENV_FILE"
 : ${CONTAINERIZED:=0}
-CONTAINERIZED=$(bval "$CONTAINERIZED", 0)
+CONTAINERIZED=$(bval $CONTAINERIZED 0)
 export CONTAINERIZED
 
-if [ "$CONTAINERIZED" -eq 1 ]; then
-
-
-else
-    CONTAINERIZED=0
-
-fi
-if [ "$CONTAINERIZED" -eq 1 ]; then
+if [ $CONTAINERIZED -eq 1 ]; then
     echo "[INFO] Running in containerized environment, setting CONTAINERIZED to 1"
     : ${ENV_FILE:="/config/settings.env"}
 else
@@ -194,6 +193,7 @@ export SSL_CA_CERTIFICATE_FILE
 # ########################################################################### #
 # Configure virtual environment
 # ########################################################################### #
+echo "[INFO] Configuring virtual environment: VIRTUAL_ENV=$VIRTUAL_ENV"
 if [ -z "$VIRTUAL_ENV" ]; then
 	venv_targets="$(echo -en "$BASE_DIR/.venv\n$BASE_DIR/venv\n$(dirname "$BASE_DIR")/.venv\n$(dirname "$BASE_DIR")/venv")"
 
@@ -222,6 +222,7 @@ export VIRTUAL_ENV
 # ########################################################################### #
 # Configure Poetry
 # ########################################################################### #
+echo "[INFO] Poetry configuration: PYTHON_POETRY=$PYTHON_POETRY, VIRTUAL_ENV=$VIRTUAL_ENV"
 if [ $PYTHON_POETRY -eq 1 ]; then
     if command -v poetry >/dev/null 2>&1; then
         echo "[INFO] Poetry is enabled and found in PATH, using it for Python dependency management"
@@ -246,8 +247,6 @@ else
 fi
 export SSL_ENABLED
 
-: ${HTTP_PORT:=80}
-: ${HTTPS_PORT:=443}
 export HTTP_PORT
 export HTTPS_PORT
 
@@ -255,20 +254,27 @@ export HTTPS_PORT
 export HTTP_SERVER
 
 if [ -n "$( echo "$CONTAINERIZED" | grep -E "$RE_TRUE" )" ]; then
-    : ${HTTP_SSL:=0}
+    : ${HTTP_ADDRESS:=0.0.0.0}
+    : ${HTTP_SSL_ENABLED:=0}
     : ${HTTP_INSECURE:=1}
     : ${HTTP_INSECURE_REDIRECT:=0}
+    : ${HTTP_PORT:=80}
+    : ${HTTPS_PORT:=443}
+
 else
-    : ${HTTP_SSL:=0}
+    : ${HTTP_ADDRESS:=127.0.0.1}
+    : ${HTTP_SSL_ENABLED:=0}
     : ${HTTP_INSECURE:=1}
     : ${HTTP_INSECURE_REDIRECT:=0}
     : ${HTTP_ENABLED:=0}
+    : ${HTTP_PORT:=8000}
+    : ${HTTPS_PORT:=8443}
 fi
-export HTTP_SSL
+export HTTP_SSL_ENABLED
 export HTTP_INSECURE
 export HTTP_INSECURE_REDIRECT
-export HTTP_ENABLED
 
+echo "[INFO] HTTP server configuration: HTTP_SERVER=$HTTP_SERVER, HTTP_ADDRESS=$HTTP_ADDRESS, HTTP_PORT=$HTTP_PORT, HTTPS_PORT=$HTTPS_PORT, SSL_ENABLED=$SSL_ENABLED, HTTP_SSL_ENABLED=$HTTP_SSL_ENABLED, HTTP_INSECURE=$HTTP_INSECURE, HTTP_INSECURE_REDIRECT=$HTTP_INSECURE_REDIRECT"
 # ########################################################################### #
 # Poetry and Python Configuration
 # ########################################################################### #
@@ -286,6 +292,13 @@ else
     fi
     python="python"
     if ! command -v python >/dev/null 2>&1; then
-        echo "[CRITICAL] Python is not installed or not in PATH!" >&2
-        exit 1
+        if ! command -v python3 >/dev/null 2>&1; then
+            echo "[CRITICAL] Python is not installed or not in PATH!" >&2
+            exit 1
+        else
+            python="python3"
+        fi
+    else
+        python="python"
+    fi
 fi

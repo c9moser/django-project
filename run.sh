@@ -1,49 +1,83 @@
 #!/bin/sh
 self="$(realpath "$0")"
-BASE_DIR="$(dirname "$self")"; epxort BASE_DIR
+BASE_DIR="$(dirname "$self")"; export BASE_DIR
 
 cd "$BASE_DIR"
 
-: ${DEFAULT_VIRTUAL_ENV:="$BASE_DIR/.venv"}
-: ${PYTHON_REQUIREMENTS:=$BASE_DIR/requirements.txt}
 
-if [ -n "${PYTHON_REQUIREMENTS%%/*}" ]; then  # check if path is relative
+if [ -z "${PYTHON_REQUIREMENTS%%/*}" ]; then  # check if path is relative
 	PYTHON_REQUIREMENTS="$BASE_DIR/$PYTHON_REQUIREMENTS"
 fi
 export PYTHON_REQUIREMENTS
 echo "[INFO] PYTHON_REQUIREMENTS=$PYTHON_REQUIREMENTS"
 
-: ${PYTHON_POETRY:=0}
-if [ -n "$(echo ${PYTHON_POETRY} | grep -E '^(1|[yY][eE][sS]|[oO][nN]|[tT][rR][uU][eE])$')" ]; then
-	if ! command -v poetry >/dev/null 2>&1; then
-		echo "[CRITICAL] Poetry is not installed or not in PATH" >&2
-		echo "Install it (for example: pip install poetry) and retry." >&2
-		exit 1
-	fi
-fi
-
-# initializing
-
-
-IFS=$'\n'
-for i in $(ls "$BASE_DIR/run.d/* | sort"); do
-	if [ "${i##**.}" = "sh" ]; then
-		. "$i" || exit $?
+for i in $(ls $BASE_DIR/.run.d/* | sort); do
+	if [ "${i##*.}" = "sh" ]; then
+		echo "[INFO] Sourcing initialization script: $i"
+		. "$i"  || exit $?
 	elif [ -x "$i" ]; then
 		echo "[INFO] Running initialization script: $i"
 		"$i" || exit $?
 	fi
 done
 
+# initializing
+
+
+help() {
+	less << EOF
+Usage: run.sh <command> [options] [args]
+
+Available commands:
+  Generic commands:
+	help                     Show this help message and exit
+    runserver                Start the HTTP server (default)
+    manage                   Run a Django management command
+    makemigrations           Create new migrations based on the changes detected to your models
+    migrate                  Apply database migrations
+    collectstatic            Collect static files into STATIC_ROOT
+    makemessages             Create message files for translation
+    compilemessages          Compile message files for translation
+    createsuperuser          Create a superuser account
+
+  Poetry commands:
+    poetry-install           Install dependencies using Poetry
+    poetry-update            Update dependencies using Poetry
+    poetry                   Run a Poetry command
+
+  Django runserver variants:
+    django-runserver         Start Django's development server
+    django-runserver-plus    Start Django's development server with django-extensions' runserver_plus
+
+  Daphne commands:
+    daphne-runserver         Start the Daphne ASGI server
+
+  uWSGI commands:
+    uwsgi-runserver          Start the uWSGI server
+    uwsgi-mkconfig           Create a default uWSGI configuration file if it doesn't exist
+
+  Apache commands:
+	apache-runserver         Start the Apache HTTP server in the foreground
+	apache-mkconfig          Create an Apache configuration file for the Django project
+EOF
+}
+
+
+
 if [ $# -eq 0 ]; then
 	echo "[INFO] No command provided, defaulting to 'runserver'"
-	runserver
+	${HTTP_SERVER}_runserver
 	exit $?
 fi
 
 case "$1" in
 	runserver)
 		shift
+		if [ -z "$HTTP_SERVER" ]; then
+			HTTP_SERVER=django
+			export HTTP_SERVER
+		fi
+		echo "[INFO] Starting HTTP server: $HTTP_SERVER"
 		${HTTP_SERVER}_runserver "$@"
 		exit $?
 		;;
@@ -119,14 +153,16 @@ case "$1" in
 		;;
 
     # Apache
-	apache-runserver)
+	apache-runserver)echo "[INFO] Running command: $*"
+		exec "$@"
+		exit $?
 		shift
 		apache_runserver "$@"
 		exit $?
 		;;
-	apache-make-site)
+	apache-mkconfig)
 		shift
-		apache_make_site "$@"
+		apache_mkconfig "$@"
 		exit $?
 		;;
 
@@ -143,46 +179,18 @@ case "$1" in
 		uwsgi_runserver "$@"
 		exit $?
 		;;
-	uwsgi-make-ini)
+	uwsgi-mkconfig)
 		shift
-		uwsgi_make_ini "$@"
+		uwsgi_mkconfig "$@"
 		exit $?
 		;;
 	help)
-		less << EOF
-Usage: run.sh <command> [options] [args]
-
-Available commands:
-  runserver                Run the development server (default)
-  manage <command>         Run a Django management command
-  makemigrations           Create new migrations based on the changes detected to your models
-  migrate                  Apply migrations to the database
-  collectstatic            Collect static files into STATIC_ROOT
-  makemessages             Create message files for translation
-  compilemessages          Compile message files for translation
-  createsuperuser          Create a new superuser
-
-  django-runserver         Run the development server using Django's built-in runserver
-  django-runserver-plus    Run the development server using django-extensions' runserver_plus
-  django-extensions-runserver Run the development server using django-extensions' runserver_plus
-
-  poetry-install           Install dependencies using Poetry
-  poetry-update            Update dependencies using Poetry
-  poetry                   Run a Poetry command
-
-  apache-runserver         Run the application with Apache and mod_wsgi
-  apache-make-site         Create an Apache site configuration for the application
-
-  daphne-runserver         Run the application with Daphne ASGI server
-
-  uwsgi-runserver          Run the application with uWSGI server
-  uwsgi-make-ini           Create a uWSGI ini file for the application
-EOF
+		help
 		exit 0
 		;;
 	*)
-		echo "[INFO] Running command: $*"
-		exec "$@"
-		exit $?
+		echo "[ERROR] Unknown command: $1" >&2
+		echo "Use 'run.sh help' to see available commands." >&2
+		exit 1
 		;;
 esac
