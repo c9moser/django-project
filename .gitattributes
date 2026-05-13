@@ -10,3 +10,6 @@ LICENSE.django-project text
 LICENSE.md text eol=lf
 LICENCE.django-project.md text eol=lf
 
+*.html	text eol=lf
+*.env	text eol=lf
+
