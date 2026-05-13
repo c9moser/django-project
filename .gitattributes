@@ -1,0 +1,12 @@
+*.sh text eol=lf
+*.bat text eol=crlf
+*.txt text
+*.py text eol=lf
+*.ps text eol=crlf
+REDAME text
+README.md text eol=lf
+LICENSE text
+LICENSE.django-project text
+LICENSE.md text eol=lf
+LICENCE.django-project.md text eol=lf
+
