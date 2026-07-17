@@ -1,0 +1,10 @@
+{
+	"automerge": true,
+	"automergeSchedule": ["* 3-12 * * *"],
+	"autoApprove": true,
+	"automergeStrategy": "merge-commit",
+	"automergeType": "pr",
+	"baseBranchPatterns": ["main"],
+	"bumpVersion": ["patch"],
+	"enabledManagers": ["poetry"]
+}
